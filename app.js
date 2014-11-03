@@ -1,12 +1,11 @@
 var express = require('express');
 var app     = express();
-var http	= require('http').Server(app);
-var io		= require('socket.io')(http);
-
-app.use(express.static(__dirname + '/public'));
-http.listen(9001, function(){
-  console.log('listening on *:9001');
+var server = app.listen(9001, function(){
+	console.log('Listening on 9001');
 });
+var io		= require('socket.io').listen(server);
+
+app.use('/', express.static(__dirname + '/public'));
 
 io.on('connection', function(socket){
   
