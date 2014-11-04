@@ -4,3 +4,65 @@ body, html{
   padding: 0;
   font-family: Helvetica, Arial, sans-serif;
 }
+
+#book{
+	position: relative;
+	top: 200px;
+	left: 7px;
+}
+
+.tile{
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;         /* Opera/IE 8+ */	
+
+	position: absolute;
+	border-color: #DDDDDD;
+	border-width: 1px;
+	border-style: solid;
+	width: 200px;
+	height: 140px;
+	text-align: center;
+	font-size: 120px;
+	font-weight: bold;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.cover{
+	font-size: 6px;
+}
+
+.box{
+
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;         /* Opera/IE 8+ */	
+
+	border-color: black;
+	border-width: 6px;
+	border-style: solid;
+	width: 160px;
+	height: 100px;
+	display: inline-block;
+	vertical-align: center;
+	margin: 20px;
+	padding: 10px;
+}
+p{
+	margin: 0;
+    padding: 0;
+}
+    
+.header1{
+	font-size: 54px;
+	margin: -5px;
+}
+.header2{
+	font-size: 13px;
+}
+.header3{
+	font-size: 11px;
+	margin: 2px;
+}

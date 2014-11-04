@@ -1,5 +1,15 @@
+/*-------------------- MODULES --------------------*/
+
 var express = require('express');
 var app     = express();
+var phantom = require('phantom');
+var server = app.listen(3011, function(){
+	console.log('Listening on 3011');
+});
+var io		= require('socket.io').listen(server);
+
+
+/*-------------------- SETUP --------------------*/
 
 app.use(function(req, res, next) {
 	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -11,10 +21,8 @@ app.use(function(req, res, next) {
 
 app.use('/', express.static(__dirname + '/public'));
 
-var server = app.listen(3011, function(){
-	console.log('Listening on 3011');
-});
-var io		= require('socket.io').listen(server);
+
+/*------------------ SCRAPING --------------------*/
 
 io.on('connection', function(socket){
   
@@ -23,27 +31,37 @@ io.on('connection', function(socket){
 	socket.on('search', function(query){
 
 		console.log('Called search.')
-
-		var phantom = require('phantom');
+		
 		phantom.create(function(ph) {
+			
 			return ph.createPage(function(page) {
+			    
 			    return page.open("https://www.google.com/search?site=imghp&tbm=isch&q="+query, function(status) {
-			      console.log("opened site? ", status);         
-			 		
-			 		// var $ = cheerio.load(this);
+			      
+			      console.log("opened site? ", status);
 
 		            setTimeout(function() {
+
 		                return page.evaluate(function() {
 
 							var images = document.getElementsByTagName('img');
-							return images[0].src;
+
+							return images[0].src
 
 		                }, function(result) {
 		                    console.log(result);
-		                    socket.emit('write', result);
+		                    console.log(query);
+			        		while(query.indexOf(' ') > -1){
+			        			query = query.replace(' ', '_') 
+			        		}
+		                    var obj = {
+		                    	name: query,
+		                    	path: result
+		                    }
+		                    socket.emit('write', obj);
 		                    ph.exit();
 		                });
-		            }, 1000);
+		            }, 500);
 			 
 			    });
 		    });
