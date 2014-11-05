@@ -2,13 +2,13 @@ body, html{
   margin: 0;
   border: 0;
   padding: 0;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: Helvetica, Arial, sans-serif;  
 }
 
 #book{
 	position: relative;
-	top: 200px;
-	left: 7px;
+	top: 100px;
+	left: 50px;
 }
 
 .tile{
@@ -30,8 +30,9 @@ body, html{
     background-position: center;
 }
 
-.cover{
-	font-size: 6px;
+.alphabet{
+	background-color: hsl(200,50%,50%);    
+	background-blend-mode: luminosity;
 }
 
 .box{
@@ -45,24 +46,32 @@ body, html{
 	border-style: solid;
 	width: 160px;
 	height: 100px;
-	display: inline-block;
-	vertical-align: center;
 	margin: 20px;
 	padding: 10px;
 }
-p{
+
+.cover p{
 	margin: 0;
     padding: 0;
+    font-size: 6px;
 }
-    
-.header1{
-	font-size: 54px;
+
+.cover h1{
+	margin: 0;
+    padding: 0;	
+	font-size: 48px;
 	margin: -5px;
 }
-.header2{
-	font-size: 13px;
-}
-.header3{
+
+.cover h2{
+	margin: 0;
+    padding: 0;		
 	font-size: 11px;
+}
+
+.cover h3{
+	margin: 0;
+    padding: 0;		
+	font-size: 10px;
 	margin: 2px;
 }

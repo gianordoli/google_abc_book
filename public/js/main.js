@@ -8,13 +8,13 @@ $(document).ready(function () {
 	var labels = ['web', 'youtube', 'recipes', 'products', 'news', 'images', 'books'];
 
 	var services = {
-	youtube: { client: 'youtube', ds: 'yt', address: 'https://www.youtube.com/results?search_query=X' },
-	books: { client: 'books', ds: 'bo', address: 'https://www.google.com/search?q=X&tbm=bks' },
-	products: { client: 'products-cc', ds: 'sh', address: 'https://www.google.com/#q=X&tbm=shop' },
-	news: { client: 'news-cc', ds: 'n', address: 'https://www.google.com/#q=X&tbm=nws' },
-	images: { client: 'img', ds: 'i', address: 'https://www.google.com/search?site=imghp&tbm=isch&q=X' },
-	web: { client: 'psy', ds: '', address: 'https://www.google.com/#q=X' },
-	recipes: { client: 'psy', ds: 'r', address: 'https://www.google.com/search?q=X&tbs=rcp'  }
+	youtube: { name: 'Youtube', client: 'youtube', ds: 'yt', address: 'https://www.youtube.com/results?search_query=X' },
+	books: { name: 'Google Books', client: 'books', ds: 'bo', address: 'https://www.google.com/search?q=X&tbm=bks' },
+	products: { name: 'Google Products', client: 'products-cc', ds: 'sh', address: 'https://www.google.com/#q=X&tbm=shop' },
+	news: { name: 'Google News', client: 'news-cc', ds: 'n', address: 'https://www.google.com/#q=X&tbm=nws' },
+	images: { name: 'Google Images', client: 'img', ds: 'i', address: 'https://www.google.com/search?site=imghp&tbm=isch&q=X' },
+	web: { name: 'Google', client: 'psy', ds: '', address: 'https://www.google.com/#q=X' },
+	recipes: { name: 'Google Recipes', client: 'psy', ds: 'r', address: 'https://www.google.com/search?q=X&tbs=rcp'  }
 	};
 
 	var results = {};
@@ -39,10 +39,30 @@ $(document).ready(function () {
 
 	/*-------------------- LISTENERS --------------------*/
 
+	// Colors
+	$('#fg-color').change(function(){
+		var foregroundColor = parseHslaColor($('#fg-color').val(), 50, 50, 1);
+		$('.tile').css({
+			'color': foregroundColor
+		});
+		$('.box').css({
+			'border-color': foregroundColor
+		});		
+	});
+	$('#bg-color').change(function(){
+		var backgroundColor = parseHslaColor($('#bg-color').val(), 50, 50, 1);
+		$('.tile.alphabet').css({
+			'background-color': backgroundColor
+		});
+		$('.tile.cover p, .tile.cover h2').css({
+			'color': backgroundColor
+		});
+	});	
+
     // Attribute Google Search service when radio button is selected
     $('input[name="service"]').click(function(){
 		service = services[$(this).val()];
-		// console.log($(this).val());
+		console.log(service);
     });
 
     // Loop through alphabet, getting first suggestion for each letter
@@ -99,7 +119,7 @@ $(document).ready(function () {
 		        	}
       				console.log(v);
 
-      				var div = $('<div id=' + v + ' class="tile">').appendTo('#book');
+      				var div = $('<div id=' + v + ' class="tile alphabet">').appendTo('#book');
       				$(div).html(letters[i]);
 
       				var index = (results.size - 1) - i;
@@ -125,7 +145,7 @@ $(document).ready(function () {
       				// After the first element, create cover and back
       				if(i == 0){
       					console.log('Generating cover...');
-						var div = $('<div id="Front" class="tile cover">').appendTo('#book');
+						var div = $('<div id="front" class="tile cover">').appendTo('#book');
 						$(div).cover('front');
 						$(div).css({
 	      					'left': posLeft - $(div).width(),
@@ -161,14 +181,25 @@ $(document).ready(function () {
 	}
 
 	jQuery.fn.cover = function(side) {
+	    
 	    var box = $('<div class="box">').appendTo(this);
+
 	    if(side == 'front'){
-	    	$(box).append('<p class="header2">The Google Images</p>');
-	    	$(box).append('<p class="header1">ABC</p>');
-	    	$(box).append('<p class="header2">Book</p>');
+	    	$(box).append('<h2>The ' + service.name + '</h2>');
+	    	$(box).append('<h1>ABC</h1>');
+	    	$(box).append('<h2>Book</h2>');
 	    }else{
+	    	var today = new Date();
+
+	    	var dd = today.getDate();
+	    	var mm = today.getMonth() + 1;
+	    	var yyyy = today.getFullYear();
+
+	    	var date = mm + '/' + dd + '/' + yyyy;
+			var time = today.getHours() + ':' + today.getMinutes();
+
 			$(box).append('<p>Earlier and earlier kids are learning things online. So why not start as soon as possible? This ABC book curated by Google Images brings to your children the top searches for each letter! Kids will love it!</p>');
-			$(box).append('<p class="header3">5-7pm 10/21/2014 edition</p>');
+			$(box).append('<h3>' + time + ' edition, ' + date + '</h3>');
 			$(box).append('<p>More at gianordoli.com/abc</p>');
 	    }
 	    return $(this);
@@ -182,5 +213,11 @@ $(document).ready(function () {
 			'background-image': 'url(' + data.path + ')'
 		});
 	});	
+
+	var parseHslaColor = function(h, s, l, a){
+		var myHslColor = 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a +')';
+		//console.log('called calculateAngle function');
+		return myHslColor;
+	}	
  
 });
