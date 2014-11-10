@@ -24,7 +24,6 @@ $(document).ready(function () {
 		var value = String.fromCharCode(i);
 		letters.push(value);
 	}
-	console.log(letters);
 
 	/*-------------------- ELEMENTS --------------------*/
     $.each(labels, function(i, v){
@@ -39,7 +38,27 @@ $(document).ready(function () {
 
 	/*-------------------- LISTENERS --------------------*/
 
-	// Colors
+	// RADIO
+    // Attribute Google Search service when radio button is selected
+    $('input[name="service"]').click(function(){
+		service = services[$(this).val()];
+		console.log(service);
+    });
+
+    // SEARCH BUTTON
+    // Loop through alphabet, getting first suggestion for each letter
+	$('#search-button').bind('mouseup', function(event){
+		// Reset results
+		results = {};
+		results.size = 0;
+		
+		// Call autocomplte for each letter
+		$.each(letters, function(i, v){
+			getAutocomplete(v);
+		});
+	});
+
+	// COLORS
 	$('#fg-color').change(function(){
 		var foregroundColor = parseHslaColor($('#fg-color').val(), 50, 50, 1);
 		$('.tile').css({
@@ -59,20 +78,22 @@ $(document).ready(function () {
 		});
 	});	
 
-    // Attribute Google Search service when radio button is selected
-    $('input[name="service"]').click(function(){
-		service = services[$(this).val()];
-		console.log(service);
-    });
-
-    // Loop through alphabet, getting first suggestion for each letter
-	$('#search-button').bind('mouseup', function(event){
-		$.each(letters, function(i, v){
-			getAutocomplete(v);
+	// SOCKET (receives images addresses)
+	socket.on('write', function(data) {
+		console.log(data);
+		var div = $('#' + data.name);
+		$(div).css({
+			'background-image': 'url(' + data.path + ')'
 		});
-	});
+	});	
+
+
+	/*-------------------- LISTENERS --------------------*/
 
 	function getAutocomplete(letter){
+		
+		console.log('Called getAutocomplete');
+
 	    $.ajax({
 	      url: 'http'+(opts.secure?'s':'')+'://clients1.google.com/complete/search',
 	      dataType: 'jsonp',
@@ -82,8 +103,10 @@ $(document).ready(function () {
 	        client: service.client,
 	        ds: service.ds
 	      },
-	      success: function(data) {
 
+	      success: function(data) {
+			
+			// console.log('success');
 	      	// console.log(data);
 
 	      	// Options come with tags; clean up to get text only
@@ -94,6 +117,7 @@ $(document).ready(function () {
 	        // console.log(options.length);
 	        // console.log(options);
 	        console.log(options[0]);
+
 	        var value = options[0];	// Take only the first suggestion
       		results[letter] = value;	// Store in associative array
       		results.size ++;
@@ -101,77 +125,9 @@ $(document).ready(function () {
       		// If it's the last one:
       		if(results.size == 26){
 
-      			console.log(results);
-
-      			// Create divs
-      			for(var i = 0; i < letters.length; i++){
-
-      				var v = results[letters[i]];
-
-      				// Replace spaces with underscores
-      				if(typeof v !== 'undefined'){
-		        		while(v.indexOf(' ') > -1){
-		        			v = v.replace(' ', '_');
-		        		}
-		        	}
-		        	else{
-		        		v = letters[i];
-		        	}
-      				console.log(v);
-
-      				var div = $('<div id=' + v + ' class="tile alphabet">').appendTo('#book');
-      				$(div).html(letters[i]);
-
-      				var index = (results.size - 1) - i;
-
-      				var nColumns = 4;
-      				var posTop = Math.floor(index / nColumns) * $(div).height();
-      				var posLeft;
-      				if(Math.floor(index / nColumns) % 2 == 0){
-						posLeft = (nColumns - 1 - (index % nColumns)) * $(div).width();					
-      				}else{
-						posLeft = (index % nColumns) * $(div).width();
-					    $(div).css({'-webkit-transform' : 'rotate('+ 180 +'deg)',
-					                 '-moz-transform' : 'rotate('+ 180 +'deg)',
-					                 '-ms-transform' : 'rotate('+ 180 +'deg)',
-					                 'transform' : 'rotate('+ 180 +'deg)'});
-      				}
-
-      				div.css({
-      					'left': posLeft,
-      					'top': posTop
-      				});
-
-      				// After the first element, create cover and back
-      				if(i == 0){
-      					console.log('Generating cover...');
-						var div = $('<div id="front" class="tile cover">').appendTo('#book');
-						$(div).cover('front');
-						$(div).css({
-	      					'left': posLeft - $(div).width(),
-	      					'top': posTop							
-						});
-
-      					console.log('Generating back...');
-						var div = $('<div id="back" class="tile cover">').appendTo('#book');
-						$(div).cover('back');
-						$(div).css({
-	      					'left': posLeft - 14 - (2 * $(div).width()),
-	      					'top': posTop							
-						});						
-      				}
-      			}
-      			
-      			// Go grab the images / call the scraper...
-      			for(var i = 0; i < letters.length; i++){
-
-      				var v = results[letters[i]];
-
-      				// Only if there were autocomplete suggestions
-      				if(typeof v !== 'undefined'){
-      					socket.emit('search', v);
-      				}
-				}
+      			// console.log(results);
+				createDivs();	
+      			scrapeImages();
       		}
 	      },
 	      error: function(){
@@ -179,6 +135,76 @@ $(document).ready(function () {
 	      }
 	    });
 	}
+
+	function createDivs(){
+		
+		// Clean up the 'book,' removing all divs previously generated
+		$('#book').empty();
+
+		for(var i = 0; i < letters.length; i++){
+
+			var v = results[letters[i]];	// Div id
+
+			// Might be the case that no autocomplete suggestion was stored
+			// If so, use the letter (A, B, C...) as id
+			if(typeof v === 'undefined'){
+				v = letters[i];
+	    	}else{
+				// We can't use spaces in ids, so replace it with underscores
+	    		while(v.indexOf(' ') > -1){
+	    			v = v.replace(' ', '_');
+	    		}    			
+    		}
+			// console.log(v);
+
+			// DIV
+			var div = $('<div id=' + v + ' class="tile alphabet">').appendTo('#book');
+
+			// LETTER
+			$(div).html(letters[i]);
+
+			// index will run through the array backwards
+			var index = (results.size - 1) - i;
+
+			var nColumns = 4;
+			var posTop = Math.floor(index / nColumns) * $(div).height();
+			var posLeft;
+			if(Math.floor(index / nColumns) % 2 == 0){
+				posLeft = (nColumns - 1 - (index % nColumns)) * $(div).width();					
+			}else{
+				posLeft = (index % nColumns) * $(div).width();
+			    $(div).css({'-webkit-transform' : 'rotate('+ 180 +'deg)',
+			                 '-moz-transform' : 'rotate('+ 180 +'deg)',
+			                 '-ms-transform' : 'rotate('+ 180 +'deg)',
+			                 'transform' : 'rotate('+ 180 +'deg)'});
+			}
+
+			div.css({
+				'left': posLeft,
+				'top': posTop
+			});
+
+			// After the first element, create cover and back
+			if(i == 0){
+				// console.log('Generating cover...');
+				var div = $('<div id="front" class="tile cover">').appendTo('#book');
+				$(div).cover('front');
+				$(div).css({
+						'left': posLeft - $(div).width(),
+						'top': posTop							
+				});
+
+				// console.log('Generating back...');
+				var div = $('<div id="back" class="tile cover">').appendTo('#book');
+				$(div).cover('back');
+				$(div).css({
+						'left': posLeft - 14 - (2 * $(div).width()),
+						'top': posTop							
+				});						
+			}
+		}
+	}	
+
 
 	jQuery.fn.cover = function(side) {
 	    
@@ -205,14 +231,21 @@ $(document).ready(function () {
 	    return $(this);
 	};
 
-	// Appending the images
-	socket.on('write', function(data) {
-		console.log(data);
-		var div = $('#' + data.name);
-		$(div).css({
-			'background-image': 'url(' + data.path + ')'
-		});
-	});	
+
+	function scrapeImages(){
+		for(var i = 0; i < letters.length; i++){
+
+			var v = results[letters[i]];
+			console.log(v);
+
+			// Only if there were autocomplete suggestions
+			if(typeof v !== 'undefined'){
+				console.log('Called search for ' + v);
+				socket.emit('search', v);
+			}
+		}		
+	}
+
 
 	var parseHslaColor = function(h, s, l, a){
 		var myHslColor = 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a +')';

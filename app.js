@@ -30,11 +30,15 @@ io.on('connection', function(socket){
 
 	socket.on('search', function(query){
 
-		console.log('Called search.')
+		console.log('Called search.');
 		
 		phantom.create(function(ph) {
 			
+			console.log('Created Phantom object.');
+
 			return ph.createPage(function(page) {
+
+				console.log('Created page.');
 			    
 			    return page.open("https://www.google.com/search?site=imghp&tbm=isch&q="+query, function(status) {
 			      

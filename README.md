@@ -17,11 +17,12 @@ Spring, 2014
 
 ## To do
 
-* new search (conditional checking if divs already exist?)
-* change colors
+* ~~new search (conditional checking if divs already exist?)~~
+* ~~change colors~~
 * include
   * ~~time~~
   * ~~title (Google Images, Youtube..)~~
+* loading/disable button
 * print (hide layers? Send only one layer to print?)  
 * final layout
 	* Title
@@ -30,7 +31,8 @@ Spring, 2014
 	* Loading/Generating sequence
 	
 	
-Process
+## Process
+
 * Open results for Google images search as a background page
 * Scrape results and return the first image
 * Sort out divs in the order
