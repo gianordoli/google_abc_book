@@ -85,6 +85,11 @@ $(document).ready(function () {
 		$(div).css({
 			'background-image': 'url(' + data.path + ')'
 		});
+		if(data.i > 0){
+			data.i --;
+			console.log(data.i);
+			scrapeImages(data.i);
+		}
 	});	
 
 
@@ -123,11 +128,11 @@ $(document).ready(function () {
       		results.size ++;
       										
       		// If it's the last one:
-      		if(results.size == 26){
+      		if(results.size == letters.length){
 
       			// console.log(results);
 				createDivs();	
-      			scrapeImages();
+      			scrapeImages(letters.length - 1);
       		}
 	      },
 	      error: function(){
@@ -222,6 +227,10 @@ $(document).ready(function () {
 	    	var yyyy = today.getFullYear();
 
 	    	var date = mm + '/' + dd + '/' + yyyy;
+	    	var min = today.getMinutes();
+	    	if(min < 10){
+	    		min = 0 + min;
+	    	}
 			var time = today.getHours() + ':' + today.getMinutes();
 
 			$(box).append('<p>Earlier and earlier kids are learning things online. So why not start as soon as possible? This ABC book curated by Google Images brings to your children the top searches for each letter! Kids will love it!</p>');
@@ -232,18 +241,20 @@ $(document).ready(function () {
 	};
 
 
-	function scrapeImages(){
-		for(var i = 0; i < letters.length; i++){
+	function scrapeImages(index){
+		var obj = {
+			i: index,
+			v: results[letters[index]]
+		}
 
-			var v = results[letters[i]];
-			console.log(v);
-
-			// Only if there were autocomplete suggestions
-			if(typeof v !== 'undefined'){
-				console.log('Called search for ' + v);
-				socket.emit('search', v);
-			}
-		}		
+		// Only if there were autocomplete suggestions
+		if(typeof obj.v !== 'undefined'){
+			console.log('Called search for ' + obj.v);
+			socket.emit('search', obj);
+		}else if(index > 0){
+			index--;
+			scrapeImages(index);
+		}
 	}
 
 

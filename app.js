@@ -28,7 +28,10 @@ io.on('connection', function(socket){
   
 	console.log('User connected');
 
-	socket.on('search', function(query){
+	socket.on('search', function(obj){
+		
+		var query = obj.v;
+		var index = obj.i;
 
 		console.log('Called search.');
 		
@@ -59,13 +62,14 @@ io.on('connection', function(socket){
 			        			query = query.replace(' ', '_') 
 			        		}
 		                    var obj = {
+		                    	i: index,
 		                    	name: query,
 		                    	path: result
 		                    }
 		                    socket.emit('write', obj);
 		                    ph.exit();
 		                });
-		            }, 500);
+		            }, 100);
 			 
 			    });
 		    });
