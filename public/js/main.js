@@ -61,9 +61,10 @@ $(document).ready(function () {
 	// COLORS
 	$('#fg-color').change(function(){
 		var foregroundColor = parseHslaColor($('#fg-color').val(), 50, 50, 1);
-		$('.tile').css({
-			'color': foregroundColor
-		});
+		// $('.tile').css({
+		// 	'color': foregroundColor,
+		//    '-webkit-text-fill-color': foregroundColor		
+		// });
 		$('.box').css({
 			'border-color': foregroundColor
 		});		
@@ -71,7 +72,8 @@ $(document).ready(function () {
 	$('#bg-color').change(function(){
 		var backgroundColor = parseHslaColor($('#bg-color').val(), 50, 50, 1);
 		$('.tile.alphabet').css({
-			'background-color': backgroundColor
+			// 'background-color': backgroundColor
+		   // '-webkit-text-stroke-color': backgroundColor
 		});
 		$('.tile.cover p, .tile.cover h2').css({
 			'color': backgroundColor
@@ -172,6 +174,10 @@ $(document).ready(function () {
 		
 		// Clean up the 'book,' removing all divs previously generated
 		$('#book').empty();
+		var nColumns = 4;
+		var nLines = 7;
+		var coverOffset = 14;
+		var div;
 
 		for(var i = 0; i < letters.length; i++){
 
@@ -190,7 +196,7 @@ $(document).ready(function () {
 			// console.log(v);
 
 			// DIV
-			var div = $('<div id="' + v + '_letter" class="tile alphabet">').appendTo('#book');
+			div = $('<div id="' + v + '_letter" class="tile alphabet">').appendTo('#book');
 
 			// LETTER
 			$(div).html(letters[i]);
@@ -198,7 +204,6 @@ $(document).ready(function () {
 			// index will run through the array backwards
 			var index = (results.size - 1) - i;
 
-			var nColumns = 4;
 			var posTop = Math.floor(index / nColumns) * $(div).height();
 			var posLeft;
 			if(Math.floor(index / nColumns) % 2 == 0){
@@ -212,7 +217,7 @@ $(document).ready(function () {
 			}
 
 			div.css({
-				'left': posLeft,
+				'left': coverOffset + posLeft,
 				'top': posTop,
 				'z-index': i + 100
 			});
@@ -226,7 +231,7 @@ $(document).ready(function () {
 			// After the first element, create cover and back
 			if(i == 0){
 				// console.log('Generating cover...');
-				var div = $('<div id="front" class="tile cover">').appendTo('#book');
+				div = $('<div id="front" class="tile cover">').appendTo('#book');
 				$(div).cover('front');
 				$(div).css({
 						'left': posLeft - $(div).width(),
@@ -234,14 +239,28 @@ $(document).ready(function () {
 				});
 
 				// console.log('Generating back...');
-				var div = $('<div id="back" class="tile cover">').appendTo('#book');
+				div = $('<div id="back" class="tile cover">').appendTo('#book');
 				$(div).cover('back');
 				$(div).css({
-						'left': posLeft - 14 - (2 * $(div).width()),
-						'top': posTop							
+						'left': posLeft - (2 * $(div).width()),
+						'top': posTop		
 				});						
 			}
 		}
+
+		// Resize the book
+		$('#book').css({
+			'width': coverOffset + (nColumns * $(div).width()),
+			'height': nLines * $(div).height()
+		});
+		// width(nColumns * $(div).width());
+		// $('#book').width();
+		// .getBoundingClientRect()
+		// var book = document.getElementById('book');
+		// console.log(book.getBoundingClientRect());
+		// $.each($('section'), function(i, v){
+		// 	console.log($(v).height());
+		// });
 	}	
 
 	jQuery.fn.cover = function(side) {
