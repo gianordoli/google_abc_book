@@ -2,6 +2,11 @@ var socket = io();
 
 $(document).ready(function () {
 
+	var sections = $('section');
+	for(var i = 1; i < sections.length; i++){
+		$(sections[i]).css('display', 'none');
+	}
+
 	console.log('Called server.');
 
 	/*-------------------- ARRAYS --------------------*/
@@ -59,26 +64,26 @@ $(document).ready(function () {
 	});
 
 	// COLORS
-	$('#fg-color').change(function(){
-		var foregroundColor = parseHslaColor($('#fg-color').val(), 50, 50, 1);
-		// $('.tile').css({
-		// 	'color': foregroundColor,
-		//    '-webkit-text-fill-color': foregroundColor		
-		// });
-		$('.box').css({
-			'border-color': foregroundColor
-		});		
-	});
-	$('#bg-color').change(function(){
-		var backgroundColor = parseHslaColor($('#bg-color').val(), 50, 50, 1);
-		$('.tile.alphabet').css({
-			// 'background-color': backgroundColor
-		   // '-webkit-text-stroke-color': backgroundColor
-		});
-		$('.tile.cover p, .tile.cover h2').css({
-			'color': backgroundColor
-		});
-	});	
+	// $('#fg-color').change(function(){
+	// 	var foregroundColor = parseHslaColor($('#fg-color').val(), 50, 50, 1);
+	// 	$('.box').css({
+	// 		'border-color': foregroundColor
+	// 	});
+	// 	$('.tile.alphabet, .tile h1, .tile h3').css({
+	// 		'color': foregroundColor,
+	// 	   // '-webkit-text-fill-color': foregroundColor
+	// 	});		
+	// });
+	// $('#bg-color').change(function(){
+	// 	var backgroundColor = parseHslaColor($('#bg-color').val(), 50, 50, 1);
+	// 	// $('.tile.alphabet').css({
+	// 		// 'background-color': backgroundColor
+	// 	   // '-webkit-text-stroke-color': backgroundColor
+	// 	// });
+	// 	$('.tile.cover p, .tile.cover h2').css({
+	// 		'color': backgroundColor
+	// 	});
+	// });	
 
 	// SOCKET (receives images addresses)
 	socket.on('write', function(data) {
@@ -114,12 +119,13 @@ $(document).ready(function () {
         mywindow.document.write('<link rel="stylesheet" href="css/style.css" type="text/css" />');
         mywindow.document.write('</head><body >');
         mywindow.document.write(data);
+        mywindow.document.write('<script>window.print()</script>');
         mywindow.document.write('</body></html>');
 
         // mywindow.print();
         // mywindow.close();
 
-        return true;
+        // return true;
     }
 
 	/*-------------------- FUNCTIONS --------------------*/
@@ -253,6 +259,11 @@ $(document).ready(function () {
 			'width': coverOffset + (nColumns * $(div).width()),
 			'height': nLines * $(div).height()
 		});
+
+		//Display following instructions
+		$.each($('section'), function(i, v){
+			$(v).css('display', 'inline');
+		});		
 		// width(nColumns * $(div).width());
 		// $('#book').width();
 		// .getBoundingClientRect()

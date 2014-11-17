@@ -9,25 +9,46 @@
   </head>
   <body>
     
-    <h1>Google ABC Book</h1>
+    <h1>The Google ABC Book</h1>
     <p>Earlier and earlier kids are learning things online. So why not start as soon as possible? This ABC book curated by Google brings to your children the top searches for each letter! Kids will love it!</p>
     <section>
         <h2>1. Choose a theme from your favorite Google service!</h2>
-        <div id="service-list"></div>        
-        <input type="button" id="search-button" value="OK" />
+        <p>
+            <div id="service-list"></div>        
+            <input type="button" id="search-button" value="OK" />
+        </p>
         <div id="book"></div>
     </section>
     <section>
-        <h2>2. Choose your favorite colors and print!</h2>
+        <h2>2. Print!</h2>
         <p>
-            Background Color<input type="range" id="bg-color" min="0" max="360" value="150"/><br>
-            Foreground Color<input type="range" id="fg-color" min="0" max="360" value="340"/><br>    
+            <!-- Background Color<input type="range" id="bg-color" min="0" max="360" value="150"/><br>
+            Foreground Color<input type="range" id="fg-color" min="0" max="360" value="340"/><br>  -->   
             <input type="button" id="print-button" value="PRINT"/>
         </p>
     </section>
     <section>
-        <h2>3. Follow the tutorial and make your instant book!</h2>
-
+        <h2>3. Follow the tutorial and make your instant ABC book!</h2>
+        <div class="tutorial">
+            <img src="img/abc_instructions_01.png" /><br>
+            A) Cut your following the boundaries. Beware of the detail at the bottom-left corner.
+        </div>
+        <div class="tutorial">
+            <img src="img/abc_instructions_02.png" /><br>
+            B) Fold it as indicated in the image above.
+        </div>
+        <div class="tutorial">
+            <img src="img/abc_instructions_03.png" /><br>
+            C) Cut following the marks in between the letters.
+        </div>        
+        <div class="tutorial">
+            <img src="img/abc_instructions_04.png" /><br>
+            D) Fold the pages following the direction you made on step B. When joining the upside-down pairs, simply fold the paper vertically.
+        </div>
+        <div class="tutorial">
+            <img src="img/abc_instructions_05.png" /><br>
+            E) When you get to the end, join the front cover with the back of the last page using some glue.
+        </div>                        
     </section>
     
     <script src="/socket.io/socket.io.js"></script>
