@@ -81,19 +81,46 @@ $(document).ready(function () {
 	// SOCKET (receives images addresses)
 	socket.on('write', function(data) {
 		console.log(data);
-		var div = $('#' + data.name);
-		$(div).css({
-			'background-image': 'url(' + data.path + ')'
+		var div = $('#' + data.name + '_img');
+		var img = $('<img src='+data.path+'>').appendTo(div);
+		// console.log($(myImg).width());
+		$(img).css({
+			'top': ($(div).height() - $(img).height())/2,
+			'left': ($(div).width() - $(img).width())/2
 		});
 		if(data.i > 0){
 			data.i --;
-			console.log(data.i);
+			// console.log(data.i);
 			scrapeImages(data.i);
 		}
 	});	
 
+	$('#print-button').bind('mouseup', function(event){
+		printElement('#book');
+	});
 
-	/*-------------------- LISTENERS --------------------*/
+    function printElement(elem){
+    	// console.log(elem);
+        popUp($(elem).html());
+    }
+
+    function popUp(data){
+    	// console.log(data);
+
+        var mywindow = window.open('', 'my div', 'height=400,width=600');
+        mywindow.document.write('<html><head>');
+        mywindow.document.write('<link rel="stylesheet" href="css/style.css" type="text/css" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+
+        // mywindow.print();
+        // mywindow.close();
+
+        return true;
+    }
+
+	/*-------------------- FUNCTIONS --------------------*/
 
 	function getAutocomplete(letter){
 		
@@ -111,7 +138,7 @@ $(document).ready(function () {
 
 	      success: function(data) {
 			
-			// console.log('success');
+			console.log('success');
 	      	// console.log(data);
 
 	      	// Options come with tags; clean up to get text only
@@ -121,7 +148,7 @@ $(document).ready(function () {
 
 	        // console.log(options.length);
 	        // console.log(options);
-	        console.log(options[0]);
+	        // console.log(options[0]);
 
 	        var value = options[0];	// Take only the first suggestion
       		results[letter] = value;	// Store in associative array
@@ -163,7 +190,7 @@ $(document).ready(function () {
 			// console.log(v);
 
 			// DIV
-			var div = $('<div id=' + v + ' class="tile alphabet">').appendTo('#book');
+			var div = $('<div id="' + v + '_letter" class="tile alphabet">').appendTo('#book');
 
 			// LETTER
 			$(div).html(letters[i]);
@@ -186,8 +213,15 @@ $(document).ready(function () {
 
 			div.css({
 				'left': posLeft,
-				'top': posTop
+				'top': posTop,
+				'z-index': i + 100
 			});
+
+			//Duplicate div and create divs for images
+			var divImg = $(div).clone().appendTo('#book');
+			$(divImg).html('');
+			$(divImg).attr('id', v + '_img');
+			$(divImg).css('z-index', $(div).css('z-index') - 100);
 
 			// After the first element, create cover and back
 			if(i == 0){
@@ -210,7 +244,6 @@ $(document).ready(function () {
 		}
 	}	
 
-
 	jQuery.fn.cover = function(side) {
 	    
 	    var box = $('<div class="box">').appendTo(this);
@@ -231,7 +264,7 @@ $(document).ready(function () {
 	    	if(min < 10){
 	    		min = 0 + min;
 	    	}
-			var time = today.getHours() + ':' + today.getMinutes();
+			var time = today.getHours() + ':' + min;
 
 			$(box).append('<p>Earlier and earlier kids are learning things online. So why not start as soon as possible? This ABC book curated by Google Images brings to your children the top searches for each letter! Kids will love it!</p>');
 			$(box).append('<h3>' + time + ' edition, ' + date + '</h3>');

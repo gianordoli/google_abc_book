@@ -2,23 +2,38 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-    <title>Google's ABC</title>
+    <title>Google ABC Book</title>
     <link href='http://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
     <!-- <link href='http://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'> -->
     <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
     
+    <h1>Google ABC Book</h1>
+    <p>Earlier and earlier kids are learning things online. So why not start as soon as possible? This ABC book curated by Google brings to your children the top searches for each letter! Kids will love it!</p>
+    <section>
+        <h2>1. Choose a theme from your favorite Google service!</h2>
+        <div id="service-list"></div>        
+        <input type="button" id="search-button" value="OK" />
+        <div id="book"></div>
+    </section>
+    <!-- <section>
+        <h2>2. Choose your favorite colors and print!</h2>
+        <p>
+            Background Color<input type="range" id="bg-color" min="0" max="360" value="150"/><br>
+            Foreground Color<input type="range" id="fg-color" min="0" max="360" value="340"/><br>    
+            <input type="button" id="print-button" value="PRINT"/>
+        </p>
+    </section>
+    <section>
+        <h2>3. Follow the tutorial and make your instant book!</h2>
+
+    </section> -->
+    
     <script src="/socket.io/socket.io.js"></script>
     <!-- jQuery -->
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <!-- Main script -->
-    <script type="text/javascript" src="js/main.js"></script>
-    <h1>GOOGLE'S ABC</h1>
-    <div id="service-list"></div>        
-    <button type="button" id="search-button">Generate</button>    
-    <div id="book"></div>
-    <p>Background Color<input type="range" id="bg-color" min="0" max="360" value="150"/>
-    <p>Foreground Color<input type="range" id="fg-color" min="0" max="360" value="340"/>
+    <script type="text/javascript" src="js/main.js"></script>        
   </body>
 </html>

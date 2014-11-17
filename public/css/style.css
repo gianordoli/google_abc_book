@@ -2,13 +2,18 @@ body, html{
   margin: 0;
   border: 0;
   padding: 0;
-  font-family: Helvetica, Arial, sans-serif;  
+  font-family: Helvetica, Arial, sans-serif;
+  text-align: center; 
 }
 
 #book{
 	position: relative;
-	top: 100px;
+	top: 0px;
 	left: 50px;
+}
+
+section{
+	position: relative;
 }
 
 .tile{
@@ -31,8 +36,18 @@ body, html{
 }
 
 .alphabet{
-	background-color: hsl(200,50%,50%);    
-	background-blend-mode: luminosity;
+	overflow:hidden;
+    /*position:relative;*/
+	/*object-fit: none;
+	object-position: center;	*/
+	/*background-color: hsl(200,50%,50%);    */
+	/*background-blend-mode: luminosity;*/
+}
+
+.alphabet img{
+	min-width: 100%;
+	min-height: 100%;
+	position: relative;
 }
 
 .box{
