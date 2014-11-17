@@ -89,7 +89,9 @@ $(document).ready(function () {
 	socket.on('write', function(data) {
 		console.log(data);
 		var div = $('#' + data.name + '_img');
-		var img = $('<img src='+data.path+'>').appendTo(div);
+		$(div).html('');
+
+		var img = $('<img src='+data.path+' class="scraped-img">').appendTo(div);
 		// console.log($(myImg).width());
 		$(img).css({
 			'top': ($(div).height() - $(img).height())/2,
@@ -233,6 +235,7 @@ $(document).ready(function () {
 			$(divImg).html('');
 			$(divImg).attr('id', v + '_img');
 			$(divImg).css('z-index', $(div).css('z-index') - 100);
+			$('<img src="img/loading.gif" />').appendTo(divImg);
 
 			// After the first element, create cover and back
 			if(i == 0){

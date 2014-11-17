@@ -54,7 +54,8 @@ body, html{
 	/*background-blend-mode: luminosity;*/
 }
 
-.alphabet img{
+/*.alphabet img{*/
+.scraped-img{
 	min-width: 100%;
 	min-height: 100%;
 	position: relative;
