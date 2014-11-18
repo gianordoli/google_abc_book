@@ -30,7 +30,7 @@ for(var i = 65; i < 91; i++){
 	var value = String.fromCharCode(i);
 	letters.push(value);
 }
-var i = 0;
+var global_index = letters.length - 1;
 
 io.on('connection', function(socket){
   
@@ -45,7 +45,7 @@ io.on('connection', function(socket){
 			
 			console.log('Created Phantom object.');
 
-			var query = data[letters[i]];
+			var query = data[letters[global_index]];
 			console.log(query);				
 
 			return ph.createPage(function(page){
@@ -89,65 +89,33 @@ io.on('connection', function(socket){
 	        			query = query.replace(' ', '_') 
 	        		}
                     results[query] = result;
+                    var obj = {
+                    	name: query,
+                    	path: result
+                    }
+                    socket.emit('write', obj);
                     // console.log(results);
 
-                    if(i < letters.length - 1){
-                    	i++;
-						var newQuery = data[letters[i]];
-						console.log('Calling search for next: ' + newQuery);	                    	
-                    	newPage(ph, page, newQuery)
+                    if(global_index > 0){
+                    	
+                    	global_index --;
+						var newQuery = data[letters[global_index]];
+
+						// Handling undefined queries
+						while(typeof newQuery === 'undefined'){
+							global_index--;
+							newQuery = data[letters[global_index]];
+						}
+						console.log('Calling search for next: ' + newQuery);
+                    	newPage(ph, page, newQuery);						
+
                     }else{
-	                    socket.emit('write', results);
-	                    ph.exit();                    	
+	                    global_index = letters.length - 1;
+	                    ph.exit();
                     }
             	}
            );	
 		}
-
-		// var query = obj.v;
-		// var index = obj.i;
-
-		// console.log('Called search.');
-		
-		// phantom.create(function(ph) {
-			
-		// 	console.log('Created Phantom object.');
-
-		// 	return ph.createPage(function(page) {
-
-		// 		console.log('Created page.');
-			    
-		// 	    return page.open("https://www.google.com/search?site=imghp&tbm=isch&q="+query, function(status) {
-			      
-		// 	      console.log("opened site? ", status);
-
-		//             setTimeout(function() {
-
-		//                 return page.evaluate(function() {
-
-		// 					var images = document.getElementsByTagName('img');
-
-		// 					return images[0].src
-
-		//                 }, function(result) {
-		//                     console.log(result);
-		//                     console.log(query);
-		// 	        		while(query.indexOf(' ') > -1){
-		// 	        			query = query.replace(' ', '_') 
-		// 	        		}
-		//                     var obj = {
-		//                     	i: index,
-		//                     	name: query,
-		//                     	path: result
-		//                     }
-		//                     socket.emit('write', obj);
-		//                     ph.exit();
-		//                 });
-		//             }, 100);
-			 
-		// 	    });
-		//     });
-		// });
 
 	});
 });

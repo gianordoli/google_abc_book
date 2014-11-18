@@ -87,18 +87,16 @@ $(document).ready(function () {
 	// SOCKET (receives images addresses)
 	socket.on('write', function(data) {
 		console.log(data);
-		for(var key in data){
 
-			var div = $('#' + key + '_img');
-			$(div).html('');
+		var div = $('#' + data.name + '_img');
+		$(div).html('');
 
-			var img = $('<img src=' + data[key] +' class="scraped-img">').appendTo(div);
-			// console.log($(myImg).width());
-			$(img).css({
-				'top': ($(div).height() - $(img).height())/2,
-				'left': ($(div).width() - $(img).width())/2
-			});
-		}
+		var img = $('<img src=' + data.path +' class="scraped-img">').appendTo(div);
+		// console.log($(myImg).width());
+		$(img).css({
+			'top': ($(div).height() - $(img).height())/2,
+			'left': ($(div).width() - $(img).width())/2
+		});
 	});	
 
 	$('#print-button').bind('mouseup', function(event){
@@ -186,11 +184,13 @@ $(document).ready(function () {
 		for(var i = 0; i < letters.length; i++){
 
 			var v = results[letters[i]];	// Div id
+			var appendLoading = true;
 
 			// Might be the case that no autocomplete suggestion was stored
 			// If so, use the letter (A, B, C...) as id
 			if(typeof v === 'undefined'){
 				v = letters[i];
+				appendLoading = false;
 	    	}else{
 				// We can't use spaces in ids, so replace it with underscores
 	    		while(v.indexOf(' ') > -1){
@@ -231,7 +231,9 @@ $(document).ready(function () {
 			$(divImg).html('');
 			$(divImg).attr('id', v + '_img');
 			$(divImg).css('z-index', $(div).css('z-index') - 100);
-			$('<img src="img/loading.gif" />').appendTo(divImg);
+			if(appendLoading){
+				$('<img src="img/loading.gif" />').appendTo(divImg);	
+			}
 
 			// After the first element, create cover and back
 			if(i == 0){
