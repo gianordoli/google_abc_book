@@ -2,6 +2,7 @@ var socket = io();
 
 $(document).ready(function () {
 
+	// Hide sections
 	var sections = $('section');
 	for(var i = 1; i < sections.length; i++){
 		$(sections[i]).css('display', 'none');
@@ -23,7 +24,6 @@ $(document).ready(function () {
 	};
 
 	var results = {};
-	results.size = 0;
 	var letters = [];
 	for(var i = 65; i < 91; i++){
 		var value = String.fromCharCode(i);
@@ -55,7 +55,6 @@ $(document).ready(function () {
 	$('#search-button').bind('mouseup', function(event){
 		// Reset results
 		results = {};
-		results.size = 0;
 		
 		// Call autocomplte for each letter
 		$.each(letters, function(i, v){
@@ -88,20 +87,16 @@ $(document).ready(function () {
 	// SOCKET (receives images addresses)
 	socket.on('write', function(data) {
 		console.log(data);
+
 		var div = $('#' + data.name + '_img');
 		$(div).html('');
 
-		var img = $('<img src='+data.path+' class="scraped-img">').appendTo(div);
+		var img = $('<img src=' + data.path +' class="scraped-img">').appendTo(div);
 		// console.log($(myImg).width());
 		$(img).css({
 			'top': ($(div).height() - $(img).height())/2,
 			'left': ($(div).width() - $(img).width())/2
 		});
-		if(data.i > 0){
-			data.i --;
-			// console.log(data.i);
-			scrapeImages(data.i);
-		}
 	});	
 
 	$('#print-button').bind('mouseup', function(event){
@@ -162,14 +157,13 @@ $(document).ready(function () {
 
 	        var value = options[0];	// Take only the first suggestion
       		results[letter] = value;	// Store in associative array
-      		results.size ++;
       										
       		// If it's the last one:
-      		if(results.size == letters.length){
+      		if(Object.size(results) == letters.length){
 
       			// console.log(results);
 				createDivs();	
-      			scrapeImages(letters.length - 1);
+      			scrapeImages();
       		}
 	      },
 	      error: function(){
@@ -190,11 +184,13 @@ $(document).ready(function () {
 		for(var i = 0; i < letters.length; i++){
 
 			var v = results[letters[i]];	// Div id
+			var appendLoading = true;
 
 			// Might be the case that no autocomplete suggestion was stored
 			// If so, use the letter (A, B, C...) as id
 			if(typeof v === 'undefined'){
 				v = letters[i];
+				appendLoading = false;
 	    	}else{
 				// We can't use spaces in ids, so replace it with underscores
 	    		while(v.indexOf(' ') > -1){
@@ -210,7 +206,7 @@ $(document).ready(function () {
 			$(div).html(letters[i]);
 
 			// index will run through the array backwards
-			var index = (results.size - 1) - i;
+			var index = (Object.size(results) - 1) - i;
 
 			var posTop = Math.floor(index / nColumns) * $(div).height();
 			var posLeft;
@@ -235,7 +231,9 @@ $(document).ready(function () {
 			$(divImg).html('');
 			$(divImg).attr('id', v + '_img');
 			$(divImg).css('z-index', $(div).css('z-index') - 100);
-			$('<img src="img/loading.gif" />').appendTo(divImg);
+			if(appendLoading){
+				$('<img src="img/loading.gif" />').appendTo(divImg);	
+			}
 
 			// After the first element, create cover and back
 			if(i == 0){
@@ -267,14 +265,6 @@ $(document).ready(function () {
 		$.each($('section'), function(i, v){
 			$(v).css('display', 'inline');
 		});		
-		// width(nColumns * $(div).width());
-		// $('#book').width();
-		// .getBoundingClientRect()
-		// var book = document.getElementById('book');
-		// console.log(book.getBoundingClientRect());
-		// $.each($('section'), function(i, v){
-		// 	console.log($(v).height());
-		// });
 	}	
 
 	jQuery.fn.cover = function(side) {
@@ -307,20 +297,24 @@ $(document).ready(function () {
 	};
 
 
-	function scrapeImages(index){
-		var obj = {
-			i: index,
-			v: results[letters[index]]
-		}
+	function scrapeImages(){
+		socket.emit('search', results);
+		// $.each(results, function(i, v){
+		// 	console.log(v);
+		// });
+		// var obj = {
+		// 	i: index,
+		// 	v: results[letters[index]]
+		// }
 
-		// Only if there were autocomplete suggestions
-		if(typeof obj.v !== 'undefined'){
-			console.log('Called search for ' + obj.v);
-			socket.emit('search', obj);
-		}else if(index > 0){
-			index--;
-			scrapeImages(index);
-		}
+		// // Only if there were autocomplete suggestions
+		// if(typeof obj.v !== 'undefined'){
+		// 	console.log('Called search for ' + obj.v);
+		// 	socket.emit('search', obj);
+		// }else if(index > 0){
+		// 	index--;
+		// 	scrapeImages(index);
+		// }
 	}
 
 
@@ -330,4 +324,12 @@ $(document).ready(function () {
 		return myHslColor;
 	}	
  
+	Object.size = function(obj) {
+	    var size = 0, key;
+	    for (key in obj) {
+	        if (obj.hasOwnProperty(key)) size++;
+	    }
+	    return size;
+	};
+
 });
