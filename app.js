@@ -1,357 +1,121 @@
-var request = require('request'),
-		 fs = require('fs'),
-		 jf = require('jsonfile'),
-	   util = require('util'),
-	  iconv = require('iconv-lite'),
-MongoClient = require('mongodb').MongoClient,
-     format = require('util').format,
-	CronJob = require('cron').CronJob
-		  _ = require('underscore');
+/*-------------------- MODULES --------------------*/
 
-console.log('--------------------------------------------');
-console.log('App started running');
-console.log('--------------------------------------------');
-
-var countries = jf.readFileSync('data/countries_domains_languages.json');
-// console.log(countries);
-
-// For now, only latin-script languages...
-countries = _.filter(countries, function(obj){
-	return obj.language_a_script == 'latin';
+var express = require('express');
+var app     = express();
+var phantom = require('phantom');
+var server = app.listen(3011, function(){
+	console.log('Listening on 3011');
 });
-// console.log(countries);
+var io		= require('socket.io').listen(server);
 
-var services = jf.readFileSync('data/services.json');
-// console.log(services);
 
+/*-------------------- SETUP --------------------*/
+
+app.use(function(req, res, next) {
+	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+	console.log('incoming request from ---> ' + ip);
+	var url = req.originalUrl;
+	console.log('### requesting ---> ' + url);
+	next();
+});
+
+app.use('/', express.static(__dirname + '/public'));
+
+
+/*------------------ SCRAPING --------------------*/
+
+var results = {};
 var letters = [];
-for(var i = 65; i <= 90; i++){
-	letters.push(String.fromCharCode(i));
+for(var i = 65; i < 91; i++){
+	var value = String.fromCharCode(i);
+	letters.push(value);
 }
-// console.log(letters);
+var global_index = letters.length - 1;
 
-// All results from this day
-var domainResults = [];
-var letterIndex, serviceIndex, countryIndex, errorCount;
-countryIndex = 0;
+io.on('connection', function(socket){
+  
+	console.log('User connected');
 
-new CronJob('0 0 2 * * *', function(){
-	restart(true);
-	// var now = new Date();
-	// console.log(now.getHours() + ':' + now.getMinutes());
-}, null, true, 'UTC');
+	socket.on('search', function(data){
+		
+		console.log(data);
+		console.log('Called search.');
 
-
-/*-------------------- MAIN FUNCTIONS --------------------*/
-
-// This is used both to START (1st time) and RESTART the calls
-// Latter might be due to:
-// a) Finished scraping a given country
-// (in that case, it wouldn't be necessary to reset the variables...
-// b) errorCount > 5, so skip to the next country
-function restart(resetVars){
-	if(resetVars){
-		letterIndex = 0;
-		serviceIndex = 0;		
-	}
-	domainResults = [];
-	errorCount = 0;
-	var msg = '\nStarted scraping ' + countries[countryIndex].domain +
-			  '\n' + services[serviceIndex].site + ', ';
-	saveLog(msg);
-	callAutocomplete(letters[letterIndex], services[serviceIndex], countries[countryIndex]);
-}
-
-function callAutocomplete(query, service, country){
-	console.log('Called callAutocomplete.')
-
-	var url = {
-		uri: concatenateUrl(query, service, country),
-		encoding: null
-	};
-
-	request(url, function (error, response, body) {
-		// console.log(error);
-		// console.log(response);
-		// console.log(body);
-
-		if (!error && response.statusCode == 200) {
-
-			// var charset = getCharset(response);
-			// console.log(charset);
-
-			var data = JSON.parse(iconv.decode(body, 'ISO-8859-1'));
-			// console.log(data);
-			var suggestions = data[1];
-			// console.log(suggestions);
-			// console.log(suggestions.length);
-
-			// Create a new record and store
-			createRecord(service, country, suggestions, function(err, obj){
-				if(!err){
-					console.log(obj);	
-					domainResults.push(obj);						
-				}
-				// Call next iteration if err == true
-				// Might be the case that no suggestions were retrieved,
-				// so just jump to the next letter
-				nextIteration();				
-			});
-		}else{
-			console.log(error);
-			saveLog(error);
-			errorCount ++;
-			console.log('errorCount: ' + errorCount);
-			// Try at least 5 times
-			if(errorCount < 5){
-				setTimeout(function(){
-					console.log('Calling autocomplete again.');
-					callAutocomplete(letters[letterIndex], services[serviceIndex], countries[countryIndex]);
-				}, 5000);				
-			}else{
-				countryIndex ++; // skip to the next country
-				restart(true);	 // reset letter and service
-			}
-
-		}
-	});
-}
-
-/*-------------------- FUNCTIONS --------------------*/
-
-function nextIteration(){
-
-	// New letter...
-	letterIndex ++;
-	if(letterIndex < letters.length){
-		// var msg = letters[letterIndex] + ', ';
-		// saveLog(msg);
-		// setTimeout(function(){	// Delay to prevent Google's shut down		
-			callAutocomplete(letters[letterIndex], services[serviceIndex], countries[countryIndex]);
-		// }, 500);
-	
-	}else{
-
-		// New service...
-		letterIndex = 0;
-		serviceIndex ++;
-		if (serviceIndex < services.length) {
-			var msg = services[serviceIndex].site + ', ';
-			saveLog(msg);
-			// setTimeout(function(){	// Delay to prevent Google's shut down
-				callAutocomplete(letters[letterIndex], services[serviceIndex], countries[countryIndex]);
-			// }, 500);
-	
-		}else{
+		phantom.create(function(ph) {
 			
-			// Save data / new country
-			serviceIndex  = 0;
-			countryIndex ++;
-			var msg = '\nFinished scraping ' +
-					  countries[countryIndex - 1].domain;
-			saveLog(msg);
-			console.log(msg);
+			console.log('Created Phantom object.');
 
-			// Save JSON
-			saveToJSON(countries[countryIndex - 1], function(err){
+			var query = data[letters[global_index]];
+			console.log(query);				
 
-				if(!err){
-					var msg = '\nSaved JSON file.';
-					saveLog(msg);
-					console.log(msg);
+			return ph.createPage(function(page){
+				newPage(ph, page, query);
+			});
 
-					// Save mongoDB
-					saveToMongoDB(function(err){
+		});		
+		
 
-						if(!err){
-							var msg = '\nSaved to mongoDB.' +
-									  '\n--------------------------------------------';
-							saveLog(msg);
-							console.log(msg);
+		function newPage(ph, page, query) {
 
-							// New country
-							if(countryIndex < countries.length){
-								setTimeout(function(){
-									restart(false);	// no need to reset letter and service
-								}, 120000);
-							}
+			console.log('Created new page.');
+		    
+		    return page.open("https://www.google.com/search?site=imghp&tbm=isch&q=" + query, function(status) {
+		      
+		      console.log("opened site? ", status);
+
+	            setTimeout(scrape(ph, page, query), 100);
+		 
+		    });
+	    }
+
+		function scrape(ph, page, query){
+
+			console.log('Started scraping...')
+
+            return page.evaluate(
+
+            	// Scrape
+            	function() {
+					var images = document.getElementsByTagName('img');
+					return images[0].src
+
+            	},
+
+            	// Send back results
+            	function(result) {
+                    console.log('Found: ' + result);
+                    console.log(query);
+	        		while(query.indexOf(' ') > -1){
+	        			query = query.replace(' ', '_') 
+	        		}
+                    results[query] = result;
+                    var obj = {
+                    	name: query,
+                    	path: result
+                    }
+                    socket.emit('write', obj);
+                    // console.log(results);
+
+                    if(global_index > 0){
+                    	
+                    	global_index --;
+						var newQuery = data[letters[global_index]];
+
+						// Handling undefined queries
+						while(typeof newQuery === 'undefined'){
+							global_index--;
+							newQuery = data[letters[global_index]];
 						}
-					});
-				}
-			});
+						console.log('Calling search for next: ' + newQuery);
+                    	newPage(ph, page, newQuery);						
+
+                    }else{
+	                    global_index = letters.length - 1;
+	                    ph.exit();
+                    }
+            	}
+           );	
 		}
-	}	
-}
 
-// Creates url for reqquest, concatenating the parameters
-function concatenateUrl(query, service, country){
-	console.log('Called concatenateUrl');
-	// console.log(service.ds);	
-	var requestUrl = 
-					'https://www.'+country.domain+'/complete/search?' +
-					 '&client=firefox'+
-					 '&q=' + query +
-					 '&ds=' + service.ds +
-					 '&hl=' + country.language_a_code;
-
-	// console.log(requestUrl);
-	console.log('Returning ' + requestUrl);
-	return requestUrl;
-}
-
-// Returns a record
-function createRecord(service, country, suggestions, callback){
-	console.log('Called createRecord');
-	// console.log('Received:');
-	// console.log(service);
-	// console.log(language);	
-	// console.log(suggestions);
-	var obj;
-	if(suggestions.length > 0){	
-		obj = {
-			date: new Date(),
-			service: service.site,
-			domain: country.domain,
-			language: country.language_a_code,
-			letter: suggestions[0].charAt(0),
-			results: suggestions
-			// results: suggestionToObj(service, suggestions)
-		};
-		// console.log('Returning ' + obj);
-		callback(false, obj);
-	}else{
-		callback(true);	// err
-	}
-}
-
-function saveLog(msg){
-	console.log('Called saveLog')
-	fs.appendFile('db/log.txt', msg, function (err) {
-	  if (err){
-	  	throw err;	
-	  }else{
-	  	console.log('Log succesfully saved.');	
-	  }
 	});
-}
-
-// Saves results to JSON file
-function saveToJSON(country, callback){
-	console.log('Saving data to JSON file.')
-	var date = new Date();
-	var timestamp = date.getTime();
-	var domain = country.domain;
-	while(domain.indexOf('.') > -1){
-		domain = domain.replace('.', '_');
-	}
-	var file = 'db/data_'+domain+'_'+timestamp+'.json'
-	var obj = domainResults;
-	 
-	jf.writeFile(file, obj, function(err) {
-	  // console.log(err);
-	  if(!err){
-	  	console.log('Results successfully saved at ' + file);
-	  	callback(false);	// error = false
-	  }else{
-	  	console.log('Failed to save JSON file.');
-	  }
-	});
-}
-
-// Save results to mongoDB
-function saveToMongoDB(callback){
-	console.log('Saving data to mongoDB.')
-
-	MongoClient.connect('mongodb://127.0.0.1:27017/autocomplete', function(err, db) {
-		console.log('Connecting to DB...');
-		if(err) throw err;
-		console.log('Connected.');
-		var collection = db.collection('records');
-		var index = 0;
-		insertObject(domainResults[index]);
-
-		function insertObject(obj){
-			console.log('Called insertObject.');
-			// console.log(obj);
-			collection.insert(obj, function(err, docs) {
-				if(err){
-					throw err;
-				}else{
-					console.log('Obj succesfully saved to DB.');	
-					// Next iteration
-					if(index < domainResults.length - 1){
-						index++;
-						var obj = domainResults[index];
-						insertObject(obj);					
-					}else{
-						db.close();			// close database						
-						callback(false);	// err = false						
-					}					
-				}
-			});
-		}
-	});
-}
-
-
-/*-------------------- NOT IN USE -------------------*/
-
-// Changes the array of suggestions to an array of obj
-// [ { query: , search: }, {} ]
-function suggestionToObj(service, list){
-	console.log('Called suggestionToObj.')
-	// console.log('Received:');
-	// console.log(service);
-	// console.log(list);
-
-	var suggestionsObj = [];
-	for(var i = 0; i < list.length; i++){
-		var newObj = {
-			query: list[i],
-			search: getSearchableLink(list[i], service)
-		}
-		suggestionsObj.push(newObj);
-	}
-	// console.log('Returning ' + suggestionsObj);
-	return suggestionsObj;
-}
-
-// Combines search address with query to get searchable link
-// Ex.: www.google.com?q=amtrak
-function getSearchableLink(query, service){
-	console.log('Called getSearchableLink.');
-	// console.log(query);
-	// console.log(service);
-	while(query.indexOf(' ') > -1){
-		query = query.replace(' ', '+') 
-	}
-	// console.log(query);
-	var searchableLink = service['search-address']
-							    .replace('X', query);
-	// console.log('Returning '+searchableLink);
-	return searchableLink;
-}
-
-// Returns the current index of a given object inside an array.
-// Utilized here to check if all services
-// and languages were already retrieved
-function currIndex(obj, array){
-	console.log('Called currIndex.');
-	for(var i = 0; i < array.length; i++){
-		// console.log(i);
-		if(array[i] == obj){
-			// console.log('Returning '+i);
-			return i;
-		}		
-	}
-}
-
-// Scrapes the server's response to detect the charset
-function getCharset(response){
-	console.log('Called getCharset.');
-	var headers = response.headers;
-	var contentType = headers['content-type'];
-	var charset = contentType.substring(contentType.lastIndexOf('=') + 1);
-	// console.log('Returning '+charset);
-	return charset;
-}
+});
