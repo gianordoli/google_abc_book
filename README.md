@@ -1,4 +1,4 @@
-# Google's Supersearch
+# Google ABC Book
 
 ---
 
@@ -12,7 +12,11 @@ Spring, 2014
 
 [Project link here](http://54.204.173.108:3011)
 
+Part of a series of projects documented [here](https://gabrielmfadt.wordpress.com/category/thesis-1/).
+
 ---
+
+![ABC Book](https://lh5.googleusercontent.com/YobxOm_yDRPaWlW-rimsJurxD7GXWrDAMK2dZvCzYUj1Om_IzdJiOJKCWPZDG8arKC4lLu1Q6M6jUZs-Ao9i6TXPu0Kk1Uvsx59ONn1GlLsMkeZEmeFnWzp5XR2ZC0WrH8VU)
 
 
 ## To do
